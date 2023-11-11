@@ -1,15 +1,14 @@
+// TODO: Create the following options for the user to choose from:
+// [ ]: view all departments
+// [ ]: view all roles
+// [ ]: view all employees
+// [ ]: add a department
+// [ ]: add a role
+// [ ]: add an employee
+// [ ]: update an employee role
+
 import inquirer from "inquirer";
-import fs from "fs";
-import { setupConnection, eventEmitter, eTracker, setupDatabase } from "./config/connection.js";
-import printTable from "console-table-printer";
-
-setupConnection();
-setupDatabase();
-
-async function eTrackerQuery (sqlQuery) {
-     const [rows, fields] = await eTracker.query(sqlQuery);
-     printTable.printTable(rows)
-};
+import { eTracker } from "./connection";
 
 const options = [
      {
@@ -29,26 +28,25 @@ const options = [
      },
 ];
 
-const optionsHandler = (optionChoices) => {
+optionsHandler = (optionChoices) => {
      switch (optionChoices) {
           case "View All Departments":
-               return eTrackerQuery("SELECT * FROM department");
+               return "SELECT * FROM department";
           case "View All Roles":
-               return eTrackerQuery("SELECT * FROM role");
+               return "SELECT * FROM role";
           case "View All Employees":
-               return eTrackerQuery("SELECT * FROM employee");
-          case "Quit":
-               return ;
+               return "SELECT * FROM employee";
      }
 };
 
-async function init() {
-     try {
-          const answers = await inquirer.prompt(options);
-          const sqlQuery = optionsHandler(answers.optionChoices);
-     } catch (err) {
-          console.error(err);
-     }
+function init() {
+     inquirer.prompt(options).then((answers) => {
+          eTracker.query(optionsHandler(answers.optionChoices), (err, res) => {
+               if (err) throw err;
+               console.table(res);
+               init();
+          });
+     });
 }
 
 const addDepartment = [

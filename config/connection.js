@@ -51,7 +51,7 @@ const setupDatabase = () => {
                await Promise.all(tables.map((table) => eTracker.query(table)));
                await eTracker.query(alterTable);
 
-               console.log("Tables created and altered.");
+               console.log("Employee Database Set-up and ready for use.");
           } catch (err) {
                console.error(err);
           }
