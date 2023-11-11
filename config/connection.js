@@ -1,11 +1,61 @@
-const mysql = require("mysql2");
+import mysql from 'mysql2/promise.js';
+import { EventEmitter } from 'events';
 
-// COMMENT: Creates a connection to your MySQL database
-const eTrackerConn = mysql.createConnection({
-     host: "localhost", // COMMENT: Enter the location of your MySQL database. If it is hosted on your local machine, use 'localhost'. If it is hosted on a server, enter the server's IP address.
-     port: 3306, // COMMENT: Enter the port your MySQL database is running on. If you are using the default port, enter 3306.
-     user: "root", // COMMENT: Enter the username used to access your database.
-     password: "root", // COMMENT: Enter the password used to access your database.
-});
+const eventEmitter = new EventEmitter();
+let eTracker;
 
-export default eTrackerConn;
+const setupConnection = async () => {
+    eTracker = await mysql.createConnection({
+        host: "localhost",
+        port: 3306,
+        user: "root",
+        password: "root",
+    });
+    eventEmitter.emit('connectionReady');
+};
+
+const setupDatabase = () => {
+     eventEmitter.on("connectionReady", async () => {
+          try {
+               const tables = [
+                    `CREATE TABLE IF NOT EXISTS department (
+                id INT NOT NULL AUTO_INCREMENT, 
+                name VARCHAR(30) NOT NULL, 
+                PRIMARY KEY (id)
+              )`,
+                    `CREATE TABLE IF NOT EXISTS role (
+                id INT NOT NULL AUTO_INCREMENT,
+                title VARCHAR(30) NOT NULL,
+                salary DECIMAL NOT NULL, 
+                department_id INT NOT NULL, 
+                PRIMARY KEY (id), 
+                FOREIGN KEY (department_id) REFERENCES department(id)
+              )`,
+                    `CREATE TABLE IF NOT EXISTS employee (
+                id INT NOT NULL AUTO_INCREMENT, 
+                first_name VARCHAR(30) NOT NULL, 
+                last_name VARCHAR(30) NOT NULL, 
+                role_id INT NOT NULL, 
+                manager_id INT DEFAULT NULL, 
+                PRIMARY KEY (id)
+              )`,
+               ];
+
+               const alterTable = `ALTER TABLE employee 
+              ADD FOREIGN KEY (role_id) REFERENCES role(id),
+              ADD FOREIGN KEY (manager_id) REFERENCES employee(id)`;
+
+               await eTracker.query("CREATE DATABASE IF NOT EXISTS employee_tracker");
+               await eTracker.query("USE employee_tracker");
+
+               await Promise.all(tables.map((table) => eTracker.query(table)));
+               await eTracker.query(alterTable);
+
+               console.log("Tables created and altered.");
+          } catch (err) {
+               console.error(err);
+          }
+     });
+};
+
+export { setupConnection, eventEmitter, eTracker, setupDatabase };
