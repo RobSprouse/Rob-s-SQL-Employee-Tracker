@@ -60,7 +60,31 @@ SELECT
 FROM
      employee;
 
-DELETE FROM
+SELECT
+     department.id AS 'Department ID',
+     department.name AS 'Department Name'
+FROM
+     department
+SELECT
+     role.id AS 'Role ID',
+     role.title AS 'Role Title',
+     department.name AS 'Department Name',
+     role.salary AS 'Salary'
+FROM
      role
-WHERE
-     id = 8
+     JOIN department ON role.department_id = department.id
+
+     
+SELECT
+     employee.id AS 'Employee ID',
+     employee.first_name AS 'First Name',
+     employee.last_name AS 'Last Name',
+     role.title AS 'Title',
+     department.name AS 'Department',
+     role.salary AS 'Salary',
+     CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager'
+FROM
+     employee
+     LEFT JOIN role ON employee.role_id = role.id
+     LEFT JOIN department ON role.department_id = department.id
+     LEFT JOIN employee manager ON manager.id = employee.manager_id

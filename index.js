@@ -2,36 +2,101 @@ import inquirer from "inquirer";
 import { setupConnection, eventEmitter, eTracker, setupDatabase } from "./config/connection.js";
 import printTable from "console-table-printer";
 
+const prompt = inquirer.prompt;
+
 setupConnection();
 setupDatabase();
 
-async function eTrackerPrint(sqlQuery) {
-     const [rows, fields] = await eTracker.query(sqlQuery);
-     if (rows.length === 0) {
-          console.log("\nThere are no records to display.\n");
-          return;
-     }
-     printTable.printTable(rows);
-}
-
-async function eTrackerGetValues(sqlQuery) {
-     const [rows, fields] = await eTracker.query(sqlQuery);
-     if (rows.length === 0) {
-          console.log("\nThere are no records to display.\n");
-          return;
-     }
-     return rows;
-}
-
-async function eTrackerExecute(sqlQuery, params = []) {
+async function eTrackerPrint(sqlQuery, params = []) {
      try {
           const [rows, fields] = await eTracker.execute(sqlQuery, params);
-          return [rows, fields];
+          return printTable.printTable(rows);
      } catch (err) {
           console.error("\n" + err.sqlMessage + "\n");
           return [null, null];
      }
 }
+
+async function eTrackerExecute(sqlQuery, params = []) {
+     try {
+          const [res, fields] = await eTracker.execute(sqlQuery, params);
+          return [res, fields];
+     } catch (err) {
+          console.error("\n" + err.sqlMessage + "\n");
+          return [null, null];
+     }
+}
+
+const validateNoInput = (input) => {
+     if (input) {
+          return true;
+     } else {
+          return "This value cannot be empty.";
+     }
+};
+
+const departmentName = [
+     {
+          type: "input",
+          name: "departmentName",
+          message: "What is the name of the department?",
+          validate: validateNoInput,
+     },
+];
+
+let addRole = [
+     {
+          type: "input",
+          name: "roleName",
+          message: "What is the name of the role?",
+          validate: validateNoInput,
+     },
+     {
+          type: "input",
+          name: "roleSalary",
+          message: "What is the salary for this role?",
+          validate: validateNoInput,
+     },
+     {
+          type: "list",
+          name: "departmentName",
+          message: "Which department does this role belong to?",
+          choices: [],
+     },
+];
+
+const sqlSelectAllDepartments = `
+     SELECT
+          department.id AS 'Department ID',
+          department.name AS 'Department Name'
+     FROM
+          department`;
+const sqlSelectAllRoles = `
+     SELECT
+          role.id AS 'Role ID',
+          role.title AS 'Role Title',
+          department.name AS 'Department Name',
+          role.salary AS 'Salary'
+     FROM
+          role
+          JOIN department ON role.department_id = department.id`;
+const sqlSelectAllEmployees = `
+     SELECT
+          employee.id AS 'Employee ID',
+          employee.first_name AS 'First Name',
+          employee.last_name AS 'Last Name',
+          role.title AS 'Title',
+          department.name AS 'Department',
+          role.salary AS 'Salary',
+          CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager'
+     FROM
+          employee
+          LEFT JOIN role ON employee.role_id = role.id
+          LEFT JOIN department ON role.department_id = department.id
+          LEFT JOIN employee manager ON manager.id = employee.manager_id`;
+
+const sqlAddDepartment = `INSERT INTO department (name) VALUES (?)`;
+const sqlAddRole = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
 
 const options = [
      {
@@ -60,56 +125,26 @@ const options = [
 const optionsHandler = async (optionChoices) => {
      switch (optionChoices) {
           case "View All Departments":
-               return eTrackerPrint(
-                    `SELECT department.id AS 'Department ID',
-                    department.name AS 'Department Name'
-                    FROM department`
-               );
+               return eTrackerPrint(sqlSelectAllDepartments);
           case "View All Roles":
-               return eTrackerPrint(
-                    `SELECT role.id AS 'Role ID',
-                    role.title AS 'Role Title',
-                    department.name AS 'Department Name',
-                    role.salary AS 'Salary'
-                    FROM
-                    role JOIN department ON role.department_id = department.id`
-               );
+               return eTrackerPrint(sqlSelectAllRoles);
           case "View All Employees":
-               return eTrackerPrint(
-                    `SELECT employee.id AS 'Employee ID', 
-                         employee.first_name AS 'First Name', 
-                         employee.last_name AS 'Last Name', 
-                         role.title AS 'Title', 
-                         department.name AS 'Department', 
-                         role.salary AS 'Salary', 
-                         CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager'
-                         FROM employee
-                         LEFT JOIN role ON employee.role_id = role.id
-                         LEFT JOIN department ON role.department_id = department.id
-                         LEFT JOIN employee manager ON manager.id = employee.manager_id`
-               );
-
+               return eTrackerPrint(sqlSelectAllEmployees);
           case "Add a Department":
-               const addDepartmentAnswer = await inquirer.prompt(addDepartment);
-               // await eTrackerExecute(`INSERT INTO department (name) VALUES ('${addDepartmentAnswer.departmentName}')`);
-               const [rows, fields] = await eTracker.query(
-                    `INSERT INTO department (name) VALUES ('${addDepartmentAnswer.departmentName}')`
-               );
-               console.log("rows =" + rows + " fields =" + fields);
-               console.log(`\nThe department ${addDepartmentAnswer.departmentName} has been added to the database.\n`);
-               break;
+               return prompt(departmentName).then((res) => {
+                    eTrackerExecute(sqlAddDepartment, [res.departmentName]);
+                    console.log(`\nThe department ${res.departmentName} has been added to the database.\n`);
+               });
           case "Add a Role":
-               console.log("\nRefer to this Department Table when assigning the id of the Department to the role.");
-               await eTrackerPrint(
-                    "SELECT department.id AS 'Department ID', department.name AS 'Department Name' FROM department"
-               );
-
-               const addRoleAnswer = await inquirer.prompt(addRole);
-               await eTracker.query(
-                    `INSERT INTO role (title, salary, department_id) VALUES ('${addRoleAnswer.roleName}', '${addRoleAnswer.roleSalary}', '${addRoleAnswer.departmentId}')`
-               );
-               console.log(`\nThe role ${addRoleAnswer.roleName} has been added to the database.\n`);
-               break;
+               return eTrackerExecute(sqlSelectAllDepartments).then(async (res) => {
+                    const departmentNames = res[0].map((res) => res.name);
+                    addRole[2].choices = departmentNames;
+                    prompt(addRole).then((res) => {
+                         // BUG: Inquirer is finding the choices array empty
+                         eTrackerExecute(sqlAddRole, [res.roleName, res.roleSalary, res.departmentName]);
+                         console.log(`\nThe role ${res.roleName} has been added to the database.\n`);
+                    });
+               });
           case "Add an Employee":
                const roles = await eTrackerGetValues("SELECT * FROM role");
                const roleChoices = roles.map((role) => ({ name: role.title, value: role.id }));
@@ -335,32 +370,6 @@ const optionsHandler = async (optionChoices) => {
                return process.exit(0);
      }
 };
-
-const addDepartment = [
-     {
-          type: "input",
-          name: "departmentName",
-          message: "What is the name of the department?",
-     },
-];
-
-const addRole = [
-     {
-          type: "input",
-          name: "roleName",
-          message: "What is the name of the role?",
-     },
-     {
-          type: "input",
-          name: "roleSalary",
-          message: "What is the salary for this role?",
-     },
-     {
-          type: "input",
-          name: "departmentId",
-          message: "What is the department ID for this role?",
-     },
-];
 
 async function init() {
      try {
