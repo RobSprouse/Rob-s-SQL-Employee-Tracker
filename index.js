@@ -7,6 +7,7 @@ const prompt = inquirer.prompt;
 setupConnection();
 setupDatabase();
 
+// COMMENT: Connection functions
 async function eTrackerPrint(sqlQuery, params = []) {
      try {
           const [rows, fields] = await eTracker.execute(sqlQuery, params);
@@ -27,6 +28,7 @@ async function eTrackerExecute(sqlQuery, params = []) {
      }
 }
 
+// COMMENT: Validations
 const validateNoInput = (input) => {
      if (input) {
           return true;
@@ -35,6 +37,7 @@ const validateNoInput = (input) => {
      }
 };
 
+// COMMENT:Prompt questions
 const departmentName = [
      {
           type: "input",
@@ -92,6 +95,61 @@ let addEmployee = [
      },
 ];
 
+const options = [
+     {
+          type: "list",
+          name: "optionChoices",
+          message: "What would you like to do?",
+          choices: [
+               "View All Departments",
+               "View All Roles",
+               "View All Employees",
+               "Add a Department",
+               "Add a Role",
+               "Add an Employee",
+               "Update an Employee Role",
+               "Update an Employee's Manager",
+               "View Employees by Manager",
+               "View Employees by Department",
+               "Delete a Department",
+               "Delete a Role",
+               "Delete an Employee",
+               "Quit",
+          ],
+     },
+];
+
+let updateEmployee = [
+     {
+          type: "list",
+          name: "employeeId",
+          message: "Which employee would you like to update?",
+          choices: [],
+     },
+     {
+          type: "list",
+          name: "newRoleTitle",
+          message: "What is the new role ID for this employee?",
+          choices: [],
+     },
+];
+
+let updateEmployeeManager = [
+     {
+          type: "list",
+          name: "employee",
+          message: "Which employee would you like to update?",
+          choices: [],
+     },
+     {
+          type: "list",
+          name: "newManager",
+          message: "What is the new manager for this employee?",
+          choices: [],
+     },
+];
+
+// COMMENT: SQL Queries
 const sqlSelectAllDepartments = `
      SELECT
           department.id AS 'Department ID',
@@ -125,7 +183,10 @@ const sqlSelectAllEmployees = `
 const sqlAddDepartment = `INSERT INTO department (name) VALUES (?)`;
 const sqlAddRole = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
 const sqlAddEmployee = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+const sqlUpdateEmployeeRole = `UPDATE employee SET role_id = ? WHERE id = ?`;
+const sqlUpdateEmployeeManager = `UPDATE employee SET manager_id = ? WHERE id = ?`;
 
+// COMMENT:Map functions
 async function getDepartmentNamesAndMap() {
      const [res, fields] = await eTrackerExecute(sqlSelectAllDepartments);
      const departmentNames = res.map((res) => res["Department Name"]);
@@ -156,31 +217,8 @@ async function getEmployeeNamesAndMap() {
      return { employeeNames, employeeMap };
 }
 
-const options = [
-     {
-          type: "list",
-          name: "optionChoices",
-          message: "What would you like to do?",
-          choices: [
-               "View All Departments",
-               "View All Roles",
-               "View All Employees",
-               "Add a Department",
-               "Add a Role",
-               "Add an Employee",
-               "Update an Employee Role",
-               "Update an Employee's Manager",
-               "View Employees by Manager",
-               "View Employees by Department",
-               "Delete a Department",
-               "Delete a Role",
-               "Delete an Employee",
-               "Quit",
-          ],
-     },
-];
-
-const optionsHandler = async (optionChoices) => {
+// COMMENT: Handler function
+async function optionsHandler(optionChoices) {
      switch (optionChoices) {
           case "View All Departments":
                return eTrackerPrint(sqlSelectAllDepartments);
@@ -188,23 +226,29 @@ const optionsHandler = async (optionChoices) => {
                return eTrackerPrint(sqlSelectAllRoles);
           case "View All Employees":
                return eTrackerPrint(sqlSelectAllEmployees);
-          case "Add a Department":
+          case "Add a Department": {
                return prompt(departmentName).then((res) => {
                     eTrackerExecute(sqlAddDepartment, [res.departmentName]);
                     console.log(`\nThe department ${res.departmentName} has been added to the database.\n`);
                });
-          case "Add a Role":
-               const { departmentNames, departmentMap } = await getDepartmentNamesAndMap();
+          }
+          case "Add a Role": {
+               let { departmentNames, departmentMap } = await getDepartmentNamesAndMap();
                addRole[2].choices = departmentNames;
                return await prompt(addRole).then(async (res) => {
-                    await eTrackerExecute(sqlAddRole, [res.roleName, res.roleSalary, departmentMap[res.departmentName]]);
+                    await eTrackerExecute(sqlAddRole, [
+                         res.roleName,
+                         res.roleSalary,
+                         departmentMap[res.departmentName],
+                    ]);
                     console.log(`\nThe role ${res.roleName} has been added to the database.\n`);
                });
-          case "Add an Employee":
-               const { roleTitles, roleMap } = await getRoleTitlesAndMap();
-               const { employeeNames, employeeMap } = await getEmployeeNamesAndMap();
+          }
+          case "Add an Employee": {
+               let { roleTitles, roleMap } = await getRoleTitlesAndMap();
+               let { employeeNames, employeeMap } = await getEmployeeNamesAndMap();
                addEmployee[2].choices = roleTitles;
-               addEmployee[3].choices = employeeNames;
+               addEmployee[3].choices = employeeNames; // TODO: need to add a null option to this list
                return await prompt(addEmployee).then(async (res) => {
                     await eTrackerExecute(sqlAddEmployee, [
                          res.addFirstName,
@@ -216,66 +260,34 @@ const optionsHandler = async (optionChoices) => {
                          `\nThe employee ${res.addFirstName} ${res.addLastName} has been added to the database.\n`
                     );
                });
-          case "Update an Employee Role":
-               const employees = await eTrackerGetValues("SELECT * FROM employee");
-               const employeeNames4 = employees.map((employee) => ({
-                    name: employee.first_name + " " + employee.last_name,
-                    value: employee.id,
-               }));
-               const roles2 = await eTrackerGetValues("SELECT * FROM role");
-               const roleChoices2 = roles2.map((role) => ({ name: role.title, value: role.id }));
-               const updateEmployeeAnswers = await inquirer.prompt([
-                    {
-                         type: "list",
-                         name: "employeeId",
-                         message: "Which employee would you like to update?",
-                         choices: employeeNames4,
-                    },
-                    {
-                         type: "list",
-                         name: "newRoleId",
-                         message: "What is the new role ID for this employee?",
-                         choices: roleChoices2,
-                    },
-               ]);
-               await eTracker.execute(`UPDATE employee SET role_id = ? WHERE id = ?`, [
-                    updateEmployeeAnswers.newRoleId,
-                    updateEmployeeAnswers.employeeId,
-               ]);
-               console.log(`\nThe employee's role has been updated.\n`);
-               break;
-          case "Update an Employee's Manager":
-               const employees2 = await eTrackerGetValues("SELECT * FROM employee");
-               const employeeNames2 = employees2.map((employee) => ({
-                    name: employee.first_name + " " + employee.last_name,
-                    value: employee.id,
-               }));
-               const managers = await eTrackerGetValues("SELECT * FROM employee");
-               const managerNames2 = managers.map((manager) => ({
-                    name: manager.first_name + " " + manager.last_name,
-                    value: manager.id,
-               }));
-               const updateEmployeeAnswers2 = await inquirer.prompt([
-                    {
-                         type: "list",
-                         name: "employeeId",
-                         message: "Which employee would you like to update?",
-                         choices: employeeNames2,
-                    },
-                    {
-                         type: "list",
-                         name: "newManagerId",
-                         message: "What is the new manager ID for this employee?",
-                         choices: managerNames2,
-                    },
-               ]);
-               await eTracker.execute(`UPDATE employee SET manager_id = ? WHERE id = ?`, [
-                    updateEmployeeAnswers2.newManagerId,
-                    updateEmployeeAnswers2.employeeId,
-               ]);
-               console.log(`\nThe employee's manager has been updated.\n`);
-               break;
-          case "View Employees by Manager":
+          }
+
+          case "Update an Employee Role": {
+               let { employeeNames, employeeMap } = await getEmployeeNamesAndMap();
+               let { roleTitles, roleMap } = await getRoleTitlesAndMap();
+               updateEmployee[0].choices = employeeNames;
+               updateEmployee[1].choices = roleTitles;
+               return await prompt(updateEmployee).then(async (res) => {
+                    await eTrackerExecute(sqlUpdateEmployeeRole, [
+                         roleMap[res.newRoleTitle],
+                         employeeMap[res.employeeId],
+                    ]);
+                    console.log(`\nThe employee's role has been updated.\n`);
+               });
+          }
+          case "Update an Employee's Manager": {
+               let { employeeNames, employeeMap } = await getEmployeeNamesAndMap();
+               updateEmployeeManager[0].choices = employeeNames;
+               updateEmployeeManager[1].choices = employeeNames;
+               return await prompt(updateEmployeeManager).then(async (res) => {
+                    await eTrackerExecute(sqlUpdateEmployeeManager, [
+                         employeeMap[res.newManager],
+                         employeeMap[res.employee],
+                    ]);
+                    console.log(`\nThe employee's manager has been updated.\n`);
+               });
+          }
+          case "View Employees by Manager": // TODO: do this next
                const managers2 = await eTrackerGetValues("SELECT * FROM employee");
                const managerNames3 = managers2.map((manager) => ({
                     name: manager.first_name + " " + manager.last_name,
@@ -393,8 +405,9 @@ const optionsHandler = async (optionChoices) => {
                console.log("\nThank you for using the Employee Tracker. Goodbye!\n");
                return process.exit(0);
      }
-};
+}
 
+// COMMENT: Init function
 async function init() {
      try {
           const answers = await inquirer.prompt(options);
