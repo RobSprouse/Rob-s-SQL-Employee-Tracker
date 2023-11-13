@@ -23,6 +23,16 @@ async function eTrackerGetValues(sqlQuery) {
      return rows;
 }
 
+async function eTrackerExecute(sqlQuery, params = []) {
+     try {
+          const [rows, fields] = await eTracker.execute(sqlQuery, params);
+          return [rows, fields];
+     } catch (err) {
+          console.error("\n" + err.sqlMessage + "\n");
+          return [null, null];
+     }
+}
+
 const options = [
      {
           type: "list",
@@ -81,7 +91,11 @@ const optionsHandler = async (optionChoices) => {
 
           case "Add a Department":
                const addDepartmentAnswer = await inquirer.prompt(addDepartment);
-               await eTracker.query(`INSERT INTO department (name) VALUES ('${addDepartmentAnswer.departmentName}')`);
+               // await eTrackerExecute(`INSERT INTO department (name) VALUES ('${addDepartmentAnswer.departmentName}')`);
+               const [rows, fields] = await eTracker.query(
+                    `INSERT INTO department (name) VALUES ('${addDepartmentAnswer.departmentName}')`
+               );
+               console.log("rows =" + rows + " fields =" + fields);
                console.log(`\nThe department ${addDepartmentAnswer.departmentName} has been added to the database.\n`);
                break;
           case "Add a Role":
@@ -170,6 +184,150 @@ const optionsHandler = async (optionChoices) => {
                     updateEmployeeAnswers.employeeId,
                ]);
                console.log(`\nThe employee's role has been updated.\n`);
+               break;
+          case "Update an Employee's Manager":
+               const employees2 = await eTrackerGetValues("SELECT * FROM employee");
+               const employeeNames2 = employees2.map((employee) => ({
+                    name: employee.first_name + " " + employee.last_name,
+                    value: employee.id,
+               }));
+               const managers = await eTrackerGetValues("SELECT * FROM employee");
+               const managerNames2 = managers.map((manager) => ({
+                    name: manager.first_name + " " + manager.last_name,
+                    value: manager.id,
+               }));
+               const updateEmployeeAnswers2 = await inquirer.prompt([
+                    {
+                         type: "list",
+                         name: "employeeId",
+                         message: "Which employee would you like to update?",
+                         choices: employeeNames2,
+                    },
+                    {
+                         type: "list",
+                         name: "newManagerId",
+                         message: "What is the new manager ID for this employee?",
+                         choices: managerNames2,
+                    },
+               ]);
+               await eTracker.execute(`UPDATE employee SET manager_id = ? WHERE id = ?`, [
+                    updateEmployeeAnswers2.newManagerId,
+                    updateEmployeeAnswers2.employeeId,
+               ]);
+               console.log(`\nThe employee's manager has been updated.\n`);
+               break;
+          case "View Employees by Manager":
+               const managers2 = await eTrackerGetValues("SELECT * FROM employee");
+               const managerNames3 = managers2.map((manager) => ({
+                    name: manager.first_name + " " + manager.last_name,
+                    value: manager.id,
+               }));
+               const managerAnswer = await inquirer.prompt([
+                    {
+                         type: "list",
+                         name: "managerId",
+                         message: "Which manager's employees would you like to view?",
+                         choices: managerNames3,
+                    },
+               ]);
+               await eTrackerPrint(
+                    `SELECT employee.id AS 'Employee ID', 
+                         employee.first_name AS 'First Name', 
+                         employee.last_name AS 'Last Name', 
+                         role.title AS 'Title', 
+                         department.name AS 'Department', 
+                         role.salary AS 'Salary', 
+                         CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager'
+                         FROM employee
+                         LEFT JOIN role ON employee.role_id = role.id
+                         LEFT JOIN department ON role.department_id = department.id
+                         LEFT JOIN employee manager ON manager.id = employee.manager_id
+                         WHERE employee.manager_id = ${managerAnswer.managerId}`
+               );
+               break;
+          case "View Employees by Department":
+               const departments = await eTrackerGetValues("SELECT * FROM department");
+               const departmentNames = departments.map((department) => ({
+                    name: department.name,
+                    value: department.id,
+               }));
+               const departmentAnswer = await inquirer.prompt([
+                    {
+                         type: "list",
+                         name: "departmentId",
+                         message: "Which department's employees would you like to view?",
+                         choices: departmentNames,
+                    },
+               ]);
+               await eTrackerPrint(
+                    `SELECT employee.id AS 'Employee ID', 
+                         employee.first_name AS 'First Name', 
+                         employee.last_name AS 'Last Name', 
+                         role.title AS 'Title', 
+                         department.name AS 'Department', 
+                         role.salary AS 'Salary', 
+                         CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager'
+                         FROM employee
+                         LEFT JOIN role ON employee.role_id = role.id
+                         LEFT JOIN department ON role.department_id = department.id
+                         LEFT JOIN employee manager ON manager.id = employee.manager_id
+                         WHERE department.id = ${departmentAnswer.departmentId}`
+               );
+               break;
+          case "Delete a Department":
+               const departments2 = await eTrackerGetValues("SELECT * FROM department");
+               const departmentNames2 = departments2.map((department) => ({
+                    name: department.name,
+                    value: department.id,
+               }));
+               const departmentAnswer2 = await inquirer.prompt([
+                    {
+                         type: "list",
+                         name: "departmentId",
+                         message: "Which department would you like to delete?",
+                         choices: departmentNames2,
+                    },
+               ]);
+               const [rows2, fields2] = await eTrackerExecute(`DELETE FROM department WHERE id = ?`, [
+                    departmentAnswer2.departmentId,
+               ]);
+               if (rows2 === null && fields2 === null) {
+                    return;
+               }
+               console.log(`\nThe department has been deleted.\n`);
+               break;
+
+          case "Delete a Role":
+               const roles3 = await eTrackerGetValues("SELECT * FROM role");
+               const roleChoices3 = roles3.map((role) => ({ name: role.title, value: role.id }));
+               const roleAnswer = await inquirer.prompt([
+                    {
+                         type: "list",
+                         name: "roleId",
+                         message: "Which role would you like to delete?",
+                         choices: roleChoices3,
+                    },
+               ]);
+               await eTracker.execute(`DELETE FROM role WHERE id = ?`, [roleAnswer.roleId]);
+               console.log(`\nThe role has been deleted.\n`);
+               break;
+          case "Delete an Employee":
+               const employees3 = await eTrackerGetValues("SELECT * FROM employee");
+               const employeeNames3 = employees3.map((employee) => ({
+                    name: employee.first_name + " " + employee.last_name,
+                    value: employee.id,
+               }));
+               const employeeAnswer = await inquirer.prompt([
+                    {
+                         type: "list",
+                         name: "employeeId",
+                         message: "Which employee would you like to delete?",
+                         choices: employeeNames3,
+                    },
+               ]);
+
+               await eTracker.execute(`DELETE FROM employee WHERE id = ?`, [employeeAnswer.employeeId]);
+               console.log(`\nThe employee has been deleted.\n`);
                break;
           case "Quit":
                eTracker.end();

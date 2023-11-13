@@ -55,8 +55,12 @@ VALUES
      ('Michael', 'Brown', 4, NULL),
      ('Sarah', 'Davis', 5, 4);
 
-
 SELECT
      *
 FROM
      employee;
+
+DELETE FROM
+     role
+WHERE
+     id = 8
