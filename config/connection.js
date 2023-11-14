@@ -5,13 +5,17 @@ const eventEmitter = new EventEmitter();
 let eTracker;
 
 const setupConnection = async () => {
-     eTracker = await mysql.createConnection({
-          host: "localhost",
-          port: 3306,
-          user: "root",
-          password: "root",
-     });
-     eventEmitter.emit("connectionReady");
+     try {
+          eTracker = await mysql.createConnection({
+               host: "localhost",
+               port: 3306,
+               user: "root",
+               password: "root",
+          });
+          eventEmitter.emit("connectionReady");
+     } catch (err) {
+          console.error(err);
+     }
 };
 
 const setupDatabase = () => {
