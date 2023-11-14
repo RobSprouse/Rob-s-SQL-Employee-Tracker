@@ -1,15 +1,8 @@
-// TODO: Create the following options for the user to choose from:
-// [ ]: view all departments
-// [ ]: view all roles
-// [ ]: view all employees
-// [ ]: add a department
-// [ ]: add a role
-// [ ]: add an employee
-// [ ]: update an employee role
 
-import inquirer from "inquirer";
-import { eTracker } from "./connection";
+// COMMENT: Validations
+const validateNoInput = (input) => (input ? true : "This value cannot be empty.");
 
+// COMMENT:Prompt questions
 const options = [
      {
           type: "list",
@@ -23,74 +16,161 @@ const options = [
                "Add a Role",
                "Add an Employee",
                "Update an Employee Role",
+               "Update an Employee's Manager",
+               "View Employees by Manager",
+               "View Employees by Department",
+               "Delete a Department",
+               "Delete a Role",
+               "Delete an Employee",
                "Quit",
           ],
      },
 ];
 
-optionsHandler = (optionChoices) => {
-     switch (optionChoices) {
-          case "View All Departments":
-               return "SELECT * FROM department";
-          case "View All Roles":
-               return "SELECT * FROM role";
-          case "View All Employees":
-               return "SELECT * FROM employee";
-     }
-};
-
-function init() {
-     inquirer.prompt(options).then((answers) => {
-          eTracker.query(optionsHandler(answers.optionChoices), (err, res) => {
-               if (err) throw err;
-               console.table(res);
-               init();
-          });
-     });
-}
-
-const addDepartment = [
+const departmentName = [
      {
           type: "input",
           name: "departmentName",
           message: "What is the name of the department?",
+          validate: validateNoInput,
      },
 ];
 
-const addRole = [
+let addRole = [
      {
           type: "input",
           name: "roleName",
           message: "What is the name of the role?",
+          validate: validateNoInput,
      },
      {
           type: "input",
           name: "roleSalary",
           message: "What is the salary for this role?",
+          validate: validateNoInput,
+     },
+     {
+          type: "list",
+          name: "departmentName",
+          message: "Which department does this role belong to?",
+          choices: [],
      },
 ];
 
-const addEmployee = [
+let addEmployee = [
      {
           type: "input",
           name: "addFirstName",
           message: "What is the first name of the employee?",
+          validate: validateNoInput,
      },
      {
           type: "input",
           name: "addLastName",
           message: "What is the last name of the employee?",
+          validate: validateNoInput,
      },
      {
-          type: "input",
-          name: "employeeRole",
-          message: "What is the role of the employee?",
+          type: "list",
+          name: "roleTitles",
+          message: "Which role does this employee have?",
+          choices: [],
      },
      {
-          type: "input",
+          type: "list",
           name: "employeeManager",
           message: "Who is the employee's manager?",
+          choices: [],
      },
 ];
 
-init();
+let updateEmployeeRole = [
+     {
+          type: "list",
+          name: "employeeName",
+          message: "Which employee would you like to update?",
+          choices: [],
+     },
+     {
+          type: "list",
+          name: "newRoleTitle",
+          message: "What is the new role ID for this employee?",
+          choices: [],
+     },
+];
+
+let updateEmployeeManager = [
+     {
+          type: "list",
+          name: "employee",
+          message: "Which employee would you like to update?",
+          choices: [],
+     },
+     {
+          type: "list",
+          name: "newManager",
+          message: "What is the new manager for this employee?",
+          choices: [],
+     },
+];
+
+let viewEmployeesByManager = [
+     {
+          type: "list",
+          name: "managers",
+          message: "Which manager's employees would you like to view?",
+          choices: [],
+     },
+];
+
+let viewEmployeesByDepartment = [
+     {
+          type: "list",
+          name: "department",
+          message: "Which department's employees would you like to view?",
+          choices: [],
+     },
+];
+
+let deleteDepartment = [
+     {
+          type: "list",
+          name: "department",
+          message: "Which department would you like to delete?",
+          choices: [],
+     },
+];
+
+let deleteRole = [
+     {
+          type: "list",
+          name: "role",
+          message: "Which role would you like to delete?",
+          choices: [],
+     },
+];
+
+let deleteEmployee = [
+     {
+          type: "list",
+          name: "employee",
+          message: "Which employee would you like to delete?",
+          choices: [],
+     },
+];
+
+const q = {
+     options: options,
+     departmentName: departmentName,
+     addRole: addRole,
+     addEmployee: addEmployee,
+     updateEmployeeRole: updateEmployeeRole,
+     updateEmployeeManager: updateEmployeeManager,
+     viewEmployeesByManager: viewEmployeesByManager,
+     viewEmployeesByDepartment: viewEmployeesByDepartment,
+     deleteDepartment: deleteDepartment,
+     deleteRole: deleteRole,
+     deleteEmployee: deleteEmployee,
+};
+
+export default q;
