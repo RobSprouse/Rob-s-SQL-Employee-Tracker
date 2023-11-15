@@ -72,7 +72,7 @@ The following image shows the database schema:
 </br>
 The following video shows an example of the application being used from the command line:
 
->[Google Drive | Rob's SQL Employee Tracker](https://drive.google.com/file/d/157xKsfaev9dZBYycIAMsoV2T2weddooR/view?usp=sharing)
+>[Google Drive | Rob's SQL Employee Tracker](https://drive.google.com/file/d/12LJ-EqtIgI_lyoBG_1sBfix_jH4aJgZn/view?usp=sharing)
 
 ## License
 
