@@ -1,33 +1,69 @@
-
 // COMMENT: Validations
 const validateNoInput = (input) => (input ? true : "This value cannot be empty.");
 
 // COMMENT:Prompt questions
+// COMMENT: Parent questions
 const options = [
      {
           type: "list",
           name: "optionChoices",
           message: "What would you like to do?",
           choices: [
-               "View All Departments",
-               "View All Roles",
-               "View All Employees",
-               "Add a Department",
-               "Add a Role",
-               "Add an Employee",
-               "Update an Employee Role",
-               "Update an Employee's Manager",
-               "View Employees by Manager",
-               "View Employees by Department",
-               "Delete a Department",
-               "Delete a Role",
-               "Delete an Employee",
+               "View by Category",
+               "Add to the Database",
+               "Update the Database",
+               "Delete from the Database",
                "Quit",
           ],
      },
 ];
 
-const departmentName = [
+// COMMENT: View by category questions
+const viewByCategory = [
+     {
+          type: "list",
+          name: "optionChoices",
+          message: "What would you like to view?",
+          choices: [
+               "View All Departments",
+               "View All Roles",
+               "View All Employees",
+               "View Employees by Department",
+               "View Employees by Manager",
+               "Return to Previous Menu",
+          ],
+     },
+];
+
+let viewEmployeesByManager = [
+     {
+          type: "list",
+          name: "managers",
+          message: "Which manager's employees would you like to view?",
+          choices: [],
+     },
+];
+
+let viewEmployeesByDepartment = [
+     {
+          type: "list",
+          name: "department",
+          message: "Which department's employees would you like to view?",
+          choices: [],
+     },
+];
+
+// COMMENT: Add to database questions
+const addToDatabase = [
+     {
+          type: "list",
+          name: "optionChoices",
+          message: "What would you like to add?",
+          choices: ["Add a Department", "Add a Role", "Add an Employee", "Return to Previous Menu"],
+     },
+];
+
+const addDepartment = [
      {
           type: "input",
           name: "departmentName",
@@ -84,6 +120,16 @@ let addEmployee = [
      },
 ];
 
+// COMMENT: Update database questions
+const updateDatabase = [
+     {
+          type: "list",
+          name: "optionChoices",
+          message: "What would you like to update?",
+          choices: ["Update an Employee Role", "Update an Employee's Manager", "Return to Previous Menu"],
+     },
+];
+
 let updateEmployeeRole = [
      {
           type: "list",
@@ -114,21 +160,13 @@ let updateEmployeeManager = [
      },
 ];
 
-let viewEmployeesByManager = [
+// COMMENT: Delete from database questions
+const deleteFromDatabase = [
      {
           type: "list",
-          name: "managers",
-          message: "Which manager's employees would you like to view?",
-          choices: [],
-     },
-];
-
-let viewEmployeesByDepartment = [
-     {
-          type: "list",
-          name: "department",
-          message: "Which department's employees would you like to view?",
-          choices: [],
+          name: "optionChoices",
+          message: "What would you like to delete?",
+          choices: ["Delete a Department", "Delete a Role", "Delete an Employee", "Return to Previous Menu"],
      },
 ];
 
@@ -161,7 +199,11 @@ let deleteEmployee = [
 
 const q = {
      options: options,
-     departmentName: departmentName,
+     viewByCategory: viewByCategory,
+     addToDatabase: addToDatabase,
+     updateDatabase: updateDatabase,
+     deleteFromDatabase: deleteFromDatabase,
+     addDepartment: addDepartment,
      addRole: addRole,
      addEmployee: addEmployee,
      updateEmployeeRole: updateEmployeeRole,

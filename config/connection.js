@@ -1,8 +1,10 @@
+// COMMENT: Imports the required modules
 import mysql from "mysql2/promise.js";
 import printTable from "console-table-printer";
 
 let eTracker;
 
+// COMMENT: Function to connect to the host database
 const setupConnection = async () => {
      try {
           eTracker = await mysql.createConnection({
@@ -20,6 +22,7 @@ const setupConnection = async () => {
      }
 };
 
+// COMMENT: Function to create the database and tables if they don't exist
 const setupDatabase = async () => {
      try {
           const tables = [
@@ -81,7 +84,9 @@ const setupDatabase = async () => {
      }
 };
 
-// COMMENT: Connection functions
+// COMMENT: Functions that utilize the connection to the database to print and execute SQL queries
+
+// COMMENT: Prints the table in the console
 async function eTrackerPrint(sqlQuery, params = []) {
      try {
           const [rows, fields] = await eTracker.execute(sqlQuery, params);
@@ -92,6 +97,7 @@ async function eTrackerPrint(sqlQuery, params = []) {
      }
 }
 
+// COMMENT: Function to executes the SQL query that is passed into it
 async function eTrackerExecute(sqlQuery, params = []) {
      try {
           const [res, fields] = await eTracker.execute(sqlQuery, params);
@@ -102,4 +108,5 @@ async function eTrackerExecute(sqlQuery, params = []) {
      }
 }
 
+// COMMENT: Exports the functions
 export { setupDatabase, setupConnection, eTracker, eTrackerPrint, eTrackerExecute };
