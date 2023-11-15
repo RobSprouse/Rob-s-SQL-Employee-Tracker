@@ -22,7 +22,7 @@ const selectAllRoles = `
 const selectAllEmployees = `
      SELECT
           employee.id AS 'Employee ID',
-          
+
           CONCAT(employee.first_name, ' ', employee.last_name) AS 'Employee Name',
           role.title AS ' Role Title',
           department.name AS 'Department',
@@ -76,6 +76,22 @@ const viewEmployeesByManager = `
           employee manager ON manager.id = employee.manager_id
      WHERE 
           employee.manager_id = ?`;
+
+// COMMENT: View the total utilized budget of a department
+const viewBudget = `
+     SELECT
+          department.name AS 'Department Name',
+          SUM(role.salary) AS 'Total Utilized Budget'
+     FROM
+          employee
+     LEFT JOIN
+          role ON employee.role_id = role.id
+     LEFT JOIN
+          department ON role.department_id = department.id
+     WHERE
+          department.id = ?
+     GROUP BY
+          department.name`;
 
 // COMMENT: SQL Queries for adding to the database
 const addDepartment = `
@@ -142,6 +158,7 @@ const sql = {
      deleteDepartment: deleteDepartment,
      deleteRole: deleteRole,
      deleteEmployee: deleteEmployee,
+     viewBudget: viewBudget,
 };
 
 // COMMENT: Exporting the sql object
