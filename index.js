@@ -1,8 +1,22 @@
-import inquirer from "inquirer";
-import mysql from "mysql";
-import eTrackerConn from "./config/connection";
+// COMMENT: Required modules
+import { setupConnection, setupDatabase } from "./config/connection.js";
+import { optionsHandler, prompt } from "./utils/promptSwitchCases.js";
+import q from "./utils/promptQuestions.js";
 
-// COMMENT: Connects to the MySQL database
-mysqlConnection.connect((err) => {
-     console.log(err ? "Error connecting to the database." : "Connected to the employee_tracker database.");
-});
+// COMMENT: Sets up the connection to the database and creates the database if it doesn't exist
+await setupConnection();
+await setupDatabase();
+
+// COMMENT: Init function
+async function init() {
+     try {
+          const answers = await prompt(q.options);
+          await optionsHandler(answers.optionChoices);
+
+          init();
+     } catch (err) {
+          console.error(err);
+     }
+}
+
+init();
