@@ -30,6 +30,7 @@ const viewByCategory = [
                "View All Employees",
                "View Employees by Department",
                "View Employees by Manager",
+               "View Budget by Department",
                "Return to Previous Menu",
           ],
      },
@@ -52,6 +53,16 @@ let viewEmployeesByDepartment = [
           choices: [],
      },
 ];
+
+let viewBudget = [
+     {
+          type: "list",
+          name: "department",
+          message: "Which department's budget would you like to view?",
+          choices: [],
+     },
+];
+
 
 // COMMENT: Add to database questions
 const addToDatabase = [
@@ -213,6 +224,7 @@ const q = {
      deleteDepartment: deleteDepartment,
      deleteRole: deleteRole,
      deleteEmployee: deleteEmployee,
+     viewBudget: viewBudget,
 };
 
 export default q;

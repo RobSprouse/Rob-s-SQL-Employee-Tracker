@@ -71,7 +71,12 @@ async function viewByCategory(optionChoices) {
                     const employeesByManager = await prompt(q.viewEmployeesByManager);
                     return await eTrackerPrint(sql.viewEmployeesByManager, [employeeMap[employeesByManager.managers]]);
                }
-
+               case "View Budget by Department": {
+                    let { departmentNames, departmentMap } = await getDepartmentNamesAndMap();
+                    q.viewBudget[0].choices = departmentNames;
+                    const departmentBudget = await prompt(q.viewBudget);
+                    return await eTrackerPrint(sql.viewBudget, [departmentMap[departmentBudget.department]]);
+               }
                case "Return to Previous Menu":
                     return;
           }
