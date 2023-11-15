@@ -14,11 +14,15 @@ const selectAllRoles = `
           role.salary AS 'Salary'
      FROM
           role
-          JOIN department ON role.department_id = department.id`;
+     JOIN 
+          department 
+     ON 
+          role.department_id = department.id`;
 
 const selectAllEmployees = `
      SELECT
           employee.id AS 'Employee ID',
+          
           CONCAT(employee.first_name, ' ', employee.last_name) AS 'Employee Name',
           role.title AS ' Role Title',
           department.name AS 'Department',
@@ -26,9 +30,12 @@ const selectAllEmployees = `
           CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager'
      FROM
           employee
-          LEFT JOIN role ON employee.role_id = role.id
-          LEFT JOIN department ON role.department_id = department.id
-          LEFT JOIN employee manager ON manager.id = employee.manager_id`;
+     LEFT JOIN 
+          role ON employee.role_id = role.id
+     LEFT JOIN 
+          department ON role.department_id = department.id
+     LEFT JOIN 
+          employee manager ON manager.id = employee.manager_id`;
 
 // COMMENT: SQL Queries for viewing the database
 const viewEmployeesByDepartment = `
@@ -59,17 +66,18 @@ const viewEmployeesByManager = `
           role.salary AS 'Salary', 
      CONCAT
           (manager.first_name, ' ', manager.last_name) AS 'Manager'
-     FROM employee
-          LEFT JOIN 
-               role ON employee.role_id = role.id
-          LEFT JOIN 
-               department ON role.department_id = department.id
-          LEFT JOIN 
-               employee manager ON manager.id = employee.manager_id
-          WHERE 
-               employee.manager_id = ?`;
+     FROM 
+          employee
+     LEFT JOIN 
+          role ON employee.role_id = role.id
+     LEFT JOIN 
+          department ON role.department_id = department.id
+     LEFT JOIN 
+          employee manager ON manager.id = employee.manager_id
+     WHERE 
+          employee.manager_id = ?`;
 
-// COMMENT:
+// COMMENT: SQL Queries for adding to the database
 const addDepartment = `
      INSERT INTO 
           department (name) 
@@ -119,7 +127,7 @@ const deleteEmployee = `
      WHERE 
           id = ?`;
 
-// COMMENT: The adding of the SQL Queries properties to the sql object for the export and ease of use
+// COMMENT: Adding the SQL Queries to the sql object for ease of use and exporting
 const sql = {
      selectAllDepartments: selectAllDepartments,
      selectAllRoles: selectAllRoles,
