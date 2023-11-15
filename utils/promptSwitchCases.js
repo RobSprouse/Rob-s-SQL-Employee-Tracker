@@ -91,7 +91,6 @@ async function addToDatabase(optionChoices) {
                     const addDepartment = await prompt(q.addDepartment);
                     console.log("\n");
                     const res = await eTrackerExecute(sql.addDepartment, [addDepartment.departmentName]);
-                    console.log(res);
                     if (res.includes(null)) {
                          break;
                     }
@@ -130,7 +129,6 @@ async function addToDatabase(optionChoices) {
                          roleMap[addedEmployee.roleTitles],
                          addedEmployee.employeeManager === "None" ? null : employeeMap[addedEmployee.employeeManager],
                     ]);
-                    console.log(res);
                     if (res.includes(null)) {
                          break;
                     }

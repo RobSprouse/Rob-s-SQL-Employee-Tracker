@@ -69,10 +69,10 @@ After following the installation instructions, while still in the applications d
 The following image shows the database schema:
 
 > <img src="screenshots/database schema.jpg">
-
+</br>
 The following video shows an example of the application being used from the command line:
 
-<!-- TODO: Add video-->
+>[Google Drive | Rob's SQL Employee Tracker](https://drive.google.com/file/d/157xKsfaev9dZBYycIAMsoV2T2weddooR/view?usp=sharing)
 
 ## License
 
