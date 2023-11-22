@@ -64,7 +64,7 @@ If you want to interact with a database that contains sample seeded data, run th
 
 ## Usage
 
-After following the installation instructions, while still in the applications directory within the terminal, run `npm start` in the command line to start the application. This will create an `employee_tracker` database on your MySql server, if it doesn't exist, and populate it with the tables `department`, `role`, and `employee`, if they don't exist. The application will then prompt you with a series of questions to view, add, delete, and update employees, roles, and departments.
+After following the installation instructions, while still in the applications directory within the terminal, run `npm run start` in the command line to start the application. This will create an `employee_tracker` database on your MySql server, if it doesn't exist, and populate it with the tables `department`, `role`, and `employee`, if they don't exist. The application will then prompt you with a series of questions to view, add, delete, and update employees, roles, and departments.
 
 The following image shows the database schema:
 
